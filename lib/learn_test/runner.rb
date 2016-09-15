@@ -59,7 +59,7 @@ module LearnTest
      //||
     // ||
    ||||||||||
-       || //   Would you like to talk to a Learn instructor?
+       || //   Would you like to talk to a Learn Expert?
        ||//
        ||/
 
