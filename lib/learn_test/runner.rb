@@ -67,7 +67,7 @@ module LearnTest
       print '(y/n): '
       response = ''
       while(response.downcase != 'y' && response.downcase != 'n')
-        response = gets.chomp
+        response = STDIN.gets.chomp
       end
 
       if response == 'y'
