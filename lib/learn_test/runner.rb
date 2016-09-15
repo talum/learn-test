@@ -19,6 +19,7 @@ module LearnTest
         push_results(strategy)
       end
       strategy.cleanup unless keep_results?
+      post_run_callbacks
     end
 
     def files
@@ -34,6 +35,31 @@ module LearnTest
     end
 
     private
+
+    def post_run_callbacks
+      puts <<-PROMPT
+
+      /||
+     //||
+    // ||
+   ||||||||||
+       || //   Would you like to talk to a Learn instructor?
+       ||//
+       ||/
+
+      PROMPT
+      print '(y/n): '
+      response = ''
+      while(response.downcase != 'y' && response.downcase != 'n')
+        response = gets.chomp
+      end
+
+      if response == 'y'
+        `open https://learn.co`
+      else
+        puts 'Ok, happy learning!'
+      end
+    end
 
     def augment_results!(results)
       if File.exist?("#{FileUtils.pwd}/.learn")
