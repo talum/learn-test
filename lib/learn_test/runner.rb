@@ -71,7 +71,7 @@ module LearnTest
       end
 
       if response == 'y'
-        `open https://learn.co`
+        `open https://learn.co/lessons/current?question_id=new`
       else
         puts 'Ok, happy learning!'
       end
