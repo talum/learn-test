@@ -71,7 +71,7 @@ module LearnTest
       end
 
       if response == 'y'
-        `open https://qa.flatironschool.com/lessons/current?question_id=new`
+        `open https://qa.learn.flatironschool.com/lessons/current?question_id=new`
       else
         puts 'Ok, happy learning!'
       end
