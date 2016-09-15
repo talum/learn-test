@@ -37,6 +37,22 @@ module LearnTest
     private
 
     def post_run_callbacks
+      learn_stats_path = "#{ENV['HOME']}/.learn-stats"
+      if File.exists?(learn_stats_path)
+        runs = File.read(learn_stats_path).to_i
+        runs += 1
+        f = File.open(learn_stats_path, "w")
+        f.write(runs)
+        f.close
+      else
+        runs = 1
+        f = File.open(learn_stats_path, "w+")
+        f.write(runs)
+        f.close
+      end
+
+      return unless runs % 3 == 0
+
       puts <<-PROMPT
 
       /||
