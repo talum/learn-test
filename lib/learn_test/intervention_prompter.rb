@@ -48,10 +48,15 @@ module LearnTest
       if response == 'y'
         puts "Good move. An Expert will be with you shortly on Ask a Question."
         browser_open(ask_a_question_url)
+        push_code_to_github
       else
         puts "No problem. You got this."
       end
       log_triggered_at
+    end
+
+    def push_code_to_github
+      LearnTest::GithubCodePusher.execute
     end
 
     def log_triggered_at

@@ -14,6 +14,7 @@ require_relative 'learn_test/file_finder'
 require_relative 'learn_test/runner'
 require_relative 'learn_test/profile'
 require_relative 'learn_test/intervention_prompter'
+require_relative 'learn_test/github_code_pusher'
 
 require_relative 'learn_test/dependency'
 require_relative 'learn_test/dependencies/nodejs'
