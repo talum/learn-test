@@ -56,7 +56,7 @@ module LearnTest
     end
 
     def push_code_to_github
-      LearnTest::GithubCodePusher.execute
+      LearnTest::GithubCodePusher.new.execute
     end
 
     def log_triggered_at
