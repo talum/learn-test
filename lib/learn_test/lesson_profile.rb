@@ -55,7 +55,7 @@ module LearnTest
     end
 
     def request_data
-      learn_api_client.lesson_profile(repo_name, processed_cli_events)
+      learn_api_client.lesson_profile_sync(repo_name, processed_cli_events)
     end
 
     def lesson_profile_path

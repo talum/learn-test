@@ -1,12 +1,11 @@
 module LearnTest
   class LearnProfile
-    attr_reader :token
-    PROFILE_PATH = "#{ENV['HOME']}/.learn_profile"
-    BASE_URL = "http://localhost:3000"
-    PROFILE_ENDPOINT = "/api/cli/profile.json"
+    attr_reader :oauth_token
 
-    def initialize(token)
-      @token = token
+    PROFILE_PATH = "#{ENV['HOME']}/.learn_profile"
+
+    def initialize(oauth_token)
+      @oauth_token = oauth_token
     end
 
     def aaq_active?
@@ -50,24 +49,12 @@ module LearnTest
       f.close
     end
 
-    def connection
-      @connection ||= Faraday.new(url: BASE_URL) do |faraday|
-        faraday.adapter(Faraday.default_adapter)
-      end
+    def learn_api_client
+      @learn_api_client ||= LearnApi::Client.new(oauth_token)
     end
 
     def request_profile
-      begin
-        response = connection.get do |req|
-          req.url(PROFILE_ENDPOINT)
-          req.headers['Content-Type'] = 'application/json'
-          req.headers['Authorization'] = "Bearer #{token}"
-        end
-
-        JSON.parse(response.body)
-      rescue JSON::ParserError, Faraday::ConnectionFailed
-        default_payload
-      end
+      learn_api_client.get_learn_profile
     end
 
     def default_payload
@@ -82,6 +69,5 @@ module LearnTest
     def profile_path
       PROFILE_PATH
     end
-
   end
 end

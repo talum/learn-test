@@ -6,18 +6,20 @@ module LearnTest::LearnApi
       @oauth_token = oauth_token
     end
 
-    private
-
-    attr_reader :oauth_token
+    def get_learn_profile
+      get('/api/cli/profile.json')
+    end
 
     def lesson_profile_sync(repo_name, processed_cli_events)
       processed_event_param = processed_cli_events.map { |e| "pce[]=#{e['uuid']}" }.join('&')
       processed_event_param.prepend('&') if processed_event_param.length > 0
 
-      path = prompt_endpoint + "/api/cli/lesson_profile.json?repo_name=#{repo_name}#{processed_event_param}"
-
-      get(path)
+      get("/api/cli/lesson_profile.json?repo_name=#{repo_name}#{processed_event_param}")
     end
+
+    private
+
+    attr_reader :oauth_token
 
     def get(path)
       begin
