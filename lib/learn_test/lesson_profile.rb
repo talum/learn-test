@@ -22,11 +22,15 @@ module LearnTest
     end
 
     def processed_cli_events
-      []
+      Array(attributes['processed_cli_events'])
     end
 
     def add_processed_cli_event!(event)
-      # todo
+      attributes['processed_cli_events'] ||= []
+      attributes['processed_cli_events'] << event
+      attributes['processed_cli_events'].uniq!
+
+      write!
     end
 
     def sync!

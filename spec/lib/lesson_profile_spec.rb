@@ -12,6 +12,8 @@ describe LearnTest::LessonProfile do
           'github_repository_id' => 0 }}}
   end
 
+  let(:cli_event) {{ 'uuid' => 12345 }}
+
   before do
     allow(lesson_profile).to receive(:ignore_lesson_profile!).at_least(:once)
     allow(LearnTest::RepoParser).to receive(:get_repo).and_return('test-lesson')
@@ -30,6 +32,12 @@ describe LearnTest::LessonProfile do
     expect(lesson_profile.lesson_id).to eq lesson_profile_payload['payload']['attributes']['lesson_id']
     expect(lesson_profile.github_repository_id).to eq lesson_profile_payload['payload']['attributes']['github_repository_id']
     expect(lesson_profile.unacknowledged_cli_events).to be_kind_of(Array)
+  end
+
+  it '#add_processed_cli_event! adds an event to the processed cli events' do
+    lesson_profile.sync!
+    lesson_profile.add_processed_cli_event!(cli_event)
+    expect(lesson_profile.processed_cli_events).to include(cli_event)
   end
 
   after do
