@@ -2,7 +2,7 @@ module LearnTest
   class LearnProfile
     attr_reader :token
     PROFILE_PATH = "#{ENV['HOME']}/.learn_profile"
-    BASE_URL = "https://qa.learn.flatironschool.com"
+    BASE_URL = "http://localhost:3000"
     PROFILE_ENDPOINT = "/api/cli/profile.json"
 
     def initialize(token)
@@ -34,7 +34,11 @@ module LearnTest
 
     def read_profile
       if File.exists?(profile_path)
-        JSON.parse(File.read(profile_path))
+        begin
+          JSON.parse(File.read(profile_path))
+        rescue JSON::ParserError
+          default_payload
+        end
       else
         default_payload
       end
@@ -61,7 +65,7 @@ module LearnTest
         end
 
         JSON.parse(response.body)
-      rescue Faraday::ConnectionFailed
+      rescue JSON::ParserError, Faraday::ConnectionFailed
         default_payload
       end
     end
