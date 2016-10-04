@@ -55,7 +55,7 @@ module LearnTest
     def sync_profiles!
       pid = fork do
         learn_profile.sync!
-        lesson_profile.sync!
+        lesson_profile.sync! if learn_profile.aaq_active?
       end
 
       Process.detach(pid)
