@@ -43,6 +43,10 @@ module LearnTest
 
     attr_reader :lesson_profile
 
+    def service_url
+      ENV['SERVICE_URL'] || SERVICE_URL
+    end
+
     def learn_profile
       LearnTest::LearnProfile.new(strategy.learn_oauth_token)
     end
@@ -72,7 +76,7 @@ module LearnTest
     end
 
     def connection
-      @connection ||= Faraday.new(url: SERVICE_URL) do |faraday|
+      @connection ||= Faraday.new(url: service_url) do |faraday|
         faraday.adapter  Faraday.default_adapter
       end
     end

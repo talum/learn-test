@@ -16,7 +16,7 @@ module LearnTest
 
     def process!(event)
       processed_cli_event!(event)
-      prompter.ask_a_question
+      prompter.ask_a_question(event["uuid"])
     end
 
     def processed_cli_event!(event)
