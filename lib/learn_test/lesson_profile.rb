@@ -1,45 +1,47 @@
 module LearnTest
   class LessonProfile
     LESSON_PROFILE_FILENAME = '.lesson_profile'
-    BASE_URL = 'https://qa.learn.flatironschool.com'
-    PROMPT_ENDPOINT = "/api/cli/prompt.json"
 
     def initialize(repo_name, oauth_token)
       @repo_name = repo_name
       @oauth_token = oauth_token
     end
 
-    def aaq_triggered!
-      data["aaq_triggered_at"] = Time.now.to_i
+    def lesson_id
+      attributes['lesson_id']
+    end
+
+    def github_repository_id
+      attributes['github_repository_id']
+    end
+
+    def unacknowledged_cli_events
+      Array(attributes['unacknowledged_cli_events'])
+    end
+
+    def processed_cli_events
+      Array(attributes['processed_cli_events'])
+    end
+
+    def add_processed_cli_event!(event)
+      attributes['processed_cli_events'] ||= []
+      attributes['processed_cli_events'] << event
+      attributes['processed_cli_events'].uniq!
+
       write!
     end
 
-    def aaq_triggered?
-      !aaq_trigger_processed? && data["aaq_trigger"] == true
-    end
-
-    def aaq_trigger_processed?
-      !!(data["aaq_triggered_at"])
-    end
-
-    def lesson_id
-      data["lid"]
-    end
-
-    def cli_event_uuid
-      data["uuid"]
-    end
-
     def sync!
-      unless aaq_trigger_processed?
-        payload = request_data["payload"]
+      payload = request_data && request_data['payload']
 
-        unless payload.nil?
-          data['lid']         = payload['lid']
-          data['uuid']        = payload['uuid']
-          data['aaq_trigger'] = payload['aaq_trigger']
-          write!
-        end
+      unless payload.nil? || payload['attributes'].nil?
+        payload_attrs = payload.fetch('attributes')
+
+        attributes['lesson_id'] = payload_attrs['lesson_id']
+        attributes['github_repository_id'] = payload_attrs['github_repository_id']
+        attributes['unacknowledged_cli_events'] = Array(payload_attrs['unacknowledged_cli_events'])
+
+        write!
       end
     end
 
@@ -48,36 +50,12 @@ module LearnTest
     attr_accessor :data
     attr_reader :repo_name, :oauth_token
 
+    def learn_api_client
+      @learn_api_client ||= LearnApi::Client.new(oauth_token)
+    end
+
     def request_data
-      begin
-        response = connection.get do |req|
-          req.url(intervention_url)
-          req.headers['Content-Type'] = 'application/json'
-          req.headers['Authorization'] = "Bearer #{oauth_token}"
-        end
-
-        JSON.parse(response.body)
-      rescue Faraday::ConnectionFailed
-        nil
-      end
-    end
-
-    def connection
-      @connection ||= Faraday.new(url: base_url) do |faraday|
-        faraday.adapter(Faraday.default_adapter)
-      end
-    end
-
-    def intervention_url
-      prompt_endpoint + "?repo_name=#{repo_name}"
-    end
-
-    def base_url
-      BASE_URL
-    end
-
-    def prompt_endpoint
-      PROMPT_ENDPOINT
+      learn_api_client.lesson_profile_sync(repo_name, processed_cli_events)
     end
 
     def lesson_profile_path
@@ -97,6 +75,11 @@ module LearnTest
       @data ||= read
     end
 
+    def attributes
+      data['attributes'] ||= {}
+      data['attributes']
+    end
+
     def write!
       ignore_lesson_profile!
 
@@ -107,17 +90,18 @@ module LearnTest
 
     def read
       if File.exists?(lesson_profile_path)
-        JSON.parse(File.read(lesson_profile_path))
+        begin
+          JSON.parse(File.read(lesson_profile_path))
+        rescue JSON::ParserError
+          new_profile
+        end
       else
         new_profile
       end
     end
 
     def new_profile
-      {
-        "aaq_trigger" => false,
-        "uuid" => ''
-      }
+      { 'attributes' => {} }
     end
 
     def ignore_lesson_profile!

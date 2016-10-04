@@ -2,27 +2,17 @@ require 'socket'
 
 module LearnTest
   class InterventionPrompter
-    BASE_URL = 'https://qa.learn.flatironschool.com'
+    LEARN_API_URL = 'https://learn.co'
 
-    attr_reader :results, :repo, :token, :learn_profile
-
-    def initialize(test_results, repo, token, learn_profile)
-      @results = test_results
-      @repo = repo
-      @token = token
-      @learn_profile = learn_profile
-      @lesson_profile = LessonProfile.new(repo, token)
+    def initialize(learn_profile, lesson_profile, results)
+      @results = results
+      @learn_profile  = learn_profile
+      @lesson_profile = lesson_profile
     end
 
-    def execute
-      ask_a_question if ask_a_question_triggered?
-    end
+    def ask_a_question(cli_event_uuid)
+      return false unless ask_a_question_should_trigger?
 
-    private
-
-    attr_reader :lesson_profile
-
-    def ask_a_question
       response = ''
       until response == 'y' || response == 'n'
         puts <<-PROMPT
@@ -40,38 +30,32 @@ module LearnTest
 
       if response == 'y'
         puts "Good move. An Expert will be with you shortly on Ask a Question."
-        browser_open(ask_a_question_url)
+        browser_open(ask_a_question_url(cli_event_uuid))
       else
         puts "No problem. You got this."
       end
-
-      aaq_triggered!
     end
 
-    def aaq_triggered!
-      lesson_profile.aaq_triggered!
+    private
+
+    attr_reader :results, :learn_profile, :lesson_profile
+
+    def learn_api_url
+      ENV['LEARN_API_URL'] || LEARN_API_URL
     end
 
-    def base_url
-      BASE_URL
-    end
-
-    def ask_a_question_url
+    def ask_a_question_url(cli_event_uuid)
       lesson_id = lesson_profile.lesson_id
-      uuid = lesson_profile.cli_event_uuid
+      uuid = cli_event_uuid
 
-      base_url + "/lessons/#{lesson_id}?question_id=new&cli_event=#{uuid}"
+      learn_api_url + "/lessons/#{lesson_id}?question_id=new&cli_event=#{uuid}"
     end
 
-    def ask_a_question_triggered?
-      return false unless learn_profile.should_trigger?
-      return false if already_triggered? || windows_environment? || all_tests_passing?
+    def ask_a_question_should_trigger?
+      return false unless learn_profile.aaq_active?
+      return false if windows_environment? || all_tests_passing?
 
-      lesson_profile.aaq_triggered?
-    end
-
-    def already_triggered?
-      lesson_profile.aaq_trigger_processed?
+      true
     end
 
     def all_tests_passing?

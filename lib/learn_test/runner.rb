@@ -3,6 +3,7 @@ require 'yaml'
 module LearnTest
   class Runner
     attr_reader :repo, :options, :results
+
     SERVICE_URL = 'http://ironbroker-v2.flatironschool.com'
 
     def initialize(repo, options = {})
@@ -23,19 +24,7 @@ module LearnTest
       strategy.cleanup unless keep_results?
 
       sync_profiles!
-      trigger_callbacks
-    end
-
-    def prompter
-      LearnTest::InterventionPrompter.new(results, repo, strategy.learn_oauth_token, learn_profile)
-    end
-
-    def trigger_callbacks
-      prompter.execute
-    end
-
-    def learn_profile
-      LearnTest::LearnProfile.new(strategy.learn_oauth_token)
+      process_events!
     end
 
     def files
@@ -52,16 +41,29 @@ module LearnTest
 
     private
 
+    attr_reader :lesson_profile
+
+    def service_url
+      ENV['SERVICE_URL'] || SERVICE_URL
+    end
+
+    def learn_profile
+      LearnTest::LearnProfile.new(strategy.learn_oauth_token)
+    end
+
+    def process_events!
+      event_processor = CliEventProcessor.new(learn_profile, lesson_profile, results)
+      event_processor.execute
+    end
+
     def sync_profiles!
       pid = fork do
         learn_profile.sync!
-        lesson_profile.sync!
+        lesson_profile.sync! if learn_profile.aaq_active?
       end
 
       Process.detach(pid)
     end
-
-    attr_reader :lesson_profile
 
     def augment_results!(results)
       if File.exist?("#{FileUtils.pwd}/.learn")
@@ -74,7 +76,7 @@ module LearnTest
     end
 
     def connection
-      @connection ||= Faraday.new(url: SERVICE_URL) do |faraday|
+      @connection ||= Faraday.new(url: service_url) do |faraday|
         faraday.adapter  Faraday.default_adapter
       end
     end

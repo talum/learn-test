@@ -1,15 +1,14 @@
 module LearnTest
   class LearnProfile
-    attr_reader :token
-    PROFILE_PATH = "#{ENV['HOME']}/.learn_profile"
-    BASE_URL = "https://qa.learn.flatironschool.com"
-    PROFILE_ENDPOINT = "/api/cli/profile.json"
+    attr_reader :oauth_token
 
-    def initialize(token)
-      @token = token
+    PROFILE_PATH = "#{ENV['HOME']}/.learn_profile"
+
+    def initialize(oauth_token)
+      @oauth_token = oauth_token
     end
 
-    def should_trigger?
+    def aaq_active?
       profile = read_profile
       profile["features"]["aaq_intervention"] == true
     end
@@ -34,7 +33,11 @@ module LearnTest
 
     def read_profile
       if File.exists?(profile_path)
-        JSON.parse(File.read(profile_path))
+        begin
+          JSON.parse(File.read(profile_path))
+        rescue JSON::ParserError
+          default_payload
+        end
       else
         default_payload
       end
@@ -46,24 +49,12 @@ module LearnTest
       f.close
     end
 
-    def connection
-      @connection ||= Faraday.new(url: BASE_URL) do |faraday|
-        faraday.adapter(Faraday.default_adapter)
-      end
+    def learn_api_client
+      @learn_api_client ||= LearnApi::Client.new(oauth_token)
     end
 
     def request_profile
-      begin
-        response = connection.get do |req|
-          req.url(PROFILE_ENDPOINT)
-          req.headers['Content-Type'] = 'application/json'
-          req.headers['Authorization'] = "Bearer #{token}"
-        end
-
-        JSON.parse(response.body)
-      rescue Faraday::ConnectionFailed
-        default_payload
-      end
+      learn_api_client.get_learn_profile
     end
 
     def default_payload
@@ -78,6 +69,5 @@ module LearnTest
     def profile_path
       PROFILE_PATH
     end
-
   end
 end
