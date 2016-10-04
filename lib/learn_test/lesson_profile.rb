@@ -73,7 +73,10 @@ module LearnTest
     end
 
     def intervention_url
-      prompt_endpoint + "?repo_name=#{repo_name}"
+      processed_event_param = processed_cli_events.map { |e| "pce[]=#{e['uuid']}" }.join('&')
+      processed_event_param.prepend('&') if processed_event_param.length > 0
+
+      prompt_endpoint + "?repo_name=#{repo_name}#{processed_event_param}"
     end
 
     def base_url
