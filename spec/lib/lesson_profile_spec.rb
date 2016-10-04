@@ -5,17 +5,16 @@ describe LearnTest::LessonProfile do
     LearnTest::LessonProfile.new('test-repo', 'test-oauth-token')
   end
 
+  let(:lesson_profile_payload) do
+    { 'payload' => {
+        'attributes' => {
+          'lesson_id' => 0,
+          'github_repository_id' => 0 }}}
+  end
+
   before do
     allow(lesson_profile).to receive(:ignore_lesson_profile!).at_least(:once)
     allow(LearnTest::RepoParser).to receive(:get_repo).and_return('test-lesson')
-
-    lesson_profile_payload = {
-      'payload' => {
-        'lid' => 0,
-        'uuid' => '1q2w3e4r5t6y7u8i',
-        'aaq_trigger' => true
-      }
-    }
 
     allow(lesson_profile).to receive(:request_data).and_return(lesson_profile_payload)
 
@@ -25,9 +24,12 @@ describe LearnTest::LessonProfile do
     Dir.chdir(@tmp_lesson_dir)
   end
 
-  it '#aaq_triggered! marks aaq as having been run' do
-    lesson_profile.aaq_triggered!
-    expect(lesson_profile.aaq_trigger_processed?).to eq true
+  it '#sync! sets the lesson_profile' do
+    lesson_profile.sync!
+
+    expect(lesson_profile.lesson_id).to eq lesson_profile_payload['payload']['attributes']['lesson_id']
+    expect(lesson_profile.github_repository_id).to eq lesson_profile_payload['payload']['attributes']['github_repository_id']
+    expect(lesson_profile.unacknowledged_cli_events).to be_kind_of(Array)
   end
 
   after do

@@ -2,44 +2,36 @@ module LearnTest
   class LessonProfile
     LESSON_PROFILE_FILENAME = '.lesson_profile'
     BASE_URL = 'https://qa.learn.flatironschool.com'
-    PROMPT_ENDPOINT = "/api/cli/prompt.json"
+    PROMPT_ENDPOINT = "/api/cli/lesson_profile.json"
 
     def initialize(repo_name, oauth_token)
       @repo_name = repo_name
       @oauth_token = oauth_token
     end
 
-    def aaq_triggered!
-      data["aaq_triggered_at"] = Time.now.to_i
-      write!
-    end
-
-    def aaq_triggered?
-      !aaq_trigger_processed? && data["aaq_trigger"] == true
-    end
-
-    def aaq_trigger_processed?
-      !!(data["aaq_triggered_at"])
-    end
-
     def lesson_id
-      data["lid"]
+      attributes['lesson_id']
     end
 
-    def cli_event_uuid
-      data["uuid"]
+    def github_repository_id
+      attributes['github_repository_id']
+    end
+
+    def unacknowledged_cli_events
+      attributes['unacknowledged_cli_events']
     end
 
     def sync!
-      unless aaq_trigger_processed?
-        payload = request_data["payload"]
+      payload = request_data['payload']
 
-        unless payload.nil?
-          data['lid']         = payload['lid']
-          data['uuid']        = payload['uuid']
-          data['aaq_trigger'] = payload['aaq_trigger']
-          write!
-        end
+      unless payload.nil? || payload['attributes'].nil?
+        payload_attrs = payload.fetch('attributes')
+
+        attributes['lesson_id'] = payload_attrs['lesson_id']
+        attributes['github_repository_id'] = payload_attrs['github_repository_id']
+        attributes['unacknowledged_cli_events'] = Array(payload_attrs['unacknowledged_cli_events'])
+
+        write!
       end
     end
 
@@ -97,6 +89,10 @@ module LearnTest
       @data ||= read
     end
 
+    def attributes
+      data['attributes']
+    end
+
     def write!
       ignore_lesson_profile!
 
@@ -114,10 +110,7 @@ module LearnTest
     end
 
     def new_profile
-      {
-        "aaq_trigger" => false,
-        "uuid" => ''
-      }
+      { 'attributes' => {} }
     end
 
     def ignore_lesson_profile!
