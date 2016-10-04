@@ -102,6 +102,7 @@ module LearnTest
     end
 
     def attributes
+      data['attributes'] ||= {}
       data['attributes']
     end
 
