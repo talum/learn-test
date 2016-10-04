@@ -7,15 +7,17 @@ module LearnTest
     end
 
     def execute
-      unprocessed_cli_events.each do |event|
-        processed_cli_event!(event)
-        prompter.ask_a_question
-      end
+      unprocessed_cli_events.each { |event| process!(event) }
     end
 
     private
 
     attr_reader :lesson_profile, :prompter
+
+    def process!(event)
+      processed_cli_event!(event)
+      prompter.ask_a_question
+    end
 
     def processed_cli_event!(event)
       lesson_profile.add_processed_cli_event!(event)
