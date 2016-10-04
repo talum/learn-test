@@ -4,33 +4,10 @@ module LearnTest
   class InterventionPrompter
     BASE_URL = 'https://qa.learn.flatironschool.com'
 
-    attr_reader :results, :repo, :token, :learn_profile
-
-    def initialize(test_results, repo, token, learn_profile)
-      @results = test_results
-      @repo = repo
-      @token = token
-      @learn_profile = learn_profile
-      @lesson_profile = LessonProfile.new(repo, token)
-    end
-
-    def execute
-      unprocessed_cli_events.each do |event|
-        processed_cli_event!(event)
-        ask_a_question
-      end
-    end
-
-    private
-
-    attr_reader :lesson_profile
-
-    def processed_cli_event!(event)
-      lesson_profile.add_processed_cli_event!(event)
-    end
-
-    def unprocessed_cli_events
-      lesson_profile.unacknowledged_cli_events - lesson_profile.processed_cli_events
+    def initialize(learn_profile, lesson_profile, results)
+      @results = results
+      @learn_profile  = learn_profile
+      @lesson_profile = lesson_profile
     end
 
     def ask_a_question
@@ -58,6 +35,10 @@ module LearnTest
         puts "No problem. You got this."
       end
     end
+
+    private
+
+    attr_reader :results, :learn_profile, :lesson_profile
 
     def base_url
       BASE_URL

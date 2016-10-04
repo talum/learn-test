@@ -1,12 +1,12 @@
 require 'spec_helper'
 
 describe LearnTest::InterventionPrompter do
-  let (:learn_profile) do
-    LearnTest::LearnProfile.new('test-oauth-token')
-  end
+  let(:learn_profile)  { LearnTest::LearnProfile.new('test-oauth-token') }
+  let(:lesson_profile) { LearnTest::LessonProfile.new('test-repo', 'test-oauth-token') }
+  let(:results) { Hash.new }
 
   let (:intervention_prompter) do
-    LearnTest::InterventionPrompter.new({}, 'test-repo', 'test-oauth-token', learn_profile)
+    LearnTest::InterventionPrompter.new(learn_profile, lesson_profile, results)
   end
 
   describe '#ask_a_question_should_trigger?' do
