@@ -15,14 +15,27 @@ module LearnTest
     end
 
     def execute
-      ask_a_question if ask_a_question_triggered?
+      unprocessed_cli_events.each do |event|
+        processed_cli_event!(event)
+        ask_a_question
+      end
     end
 
     private
 
     attr_reader :lesson_profile
 
+    def processed_cli_event!(event)
+      lesson_profile.add_processed_cli_event!(event)
+    end
+
+    def unprocessed_cli_events
+      lesson_profile.unacknowledged_cli_events - lesson_profile.processed_cli_events
+    end
+
     def ask_a_question
+      return false unless ask_a_question_should_trigger?
+
       response = ''
       until response == 'y' || response == 'n'
         puts <<-PROMPT
@@ -44,12 +57,6 @@ module LearnTest
       else
         puts "No problem. You got this."
       end
-
-      aaq_triggered!
-    end
-
-    def aaq_triggered!
-      lesson_profile.aaq_triggered!
     end
 
     def base_url
@@ -63,15 +70,11 @@ module LearnTest
       base_url + "/lessons/#{lesson_id}?question_id=new&cli_event=#{uuid}"
     end
 
-    def ask_a_question_triggered?
+    def ask_a_question_should_trigger?
       return false unless learn_profile.aaq_active?
-      return false if already_triggered? || windows_environment? || all_tests_passing?
+      return false if windows_environment? || all_tests_passing?
 
-      lesson_profile.aaq_triggered?
-    end
-
-    def already_triggered?
-      lesson_profile.aaq_trigger_processed?
+      true
     end
 
     def all_tests_passing?

@@ -18,7 +18,15 @@ module LearnTest
     end
 
     def unacknowledged_cli_events
-      attributes['unacknowledged_cli_events']
+      Array(attributes['unacknowledged_cli_events'])
+    end
+
+    def processed_cli_events
+      []
+    end
+
+    def add_processed_cli_event!(event)
+      # todo
     end
 
     def sync!
