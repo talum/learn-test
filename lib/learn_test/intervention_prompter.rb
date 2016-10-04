@@ -64,7 +64,7 @@ module LearnTest
     end
 
     def ask_a_question_triggered?
-      return false unless learn_profile.should_trigger?
+      return false unless learn_profile.aaq_active?
       return false if already_triggered? || windows_environment? || all_tests_passing?
 
       lesson_profile.aaq_triggered?

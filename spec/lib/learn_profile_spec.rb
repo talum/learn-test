@@ -48,7 +48,7 @@ describe LearnTest::LearnProfile do
     end
   end
 
-  describe '#should_trigger?' do
+  describe '#aaq_active?' do
     let (:feature_on_payload) do
       {
         "features" => {
@@ -71,7 +71,7 @@ describe LearnTest::LearnProfile do
       it 'returns true' do
         allow_any_instance_of(LearnTest::LearnProfile).to receive(:read_profile).and_return(feature_on_payload)
 
-        expect(profile.should_trigger?).to eq(true)
+        expect(profile.aaq_active?).to eq(true)
       end
     end
 
@@ -79,7 +79,7 @@ describe LearnTest::LearnProfile do
       it 'returns false' do
         allow_any_instance_of(LearnTest::LearnProfile).to receive(:read_profile).and_return(feature_off_payload)
 
-        expect(profile.should_trigger?).to eq(false)
+        expect(profile.aaq_active?).to eq(false)
       end
     end
   end

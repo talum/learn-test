@@ -9,7 +9,7 @@ module LearnTest
       @token = token
     end
 
-    def should_trigger?
+    def aaq_active?
       profile = read_profile
       profile["features"]["aaq_intervention"] == true
     end
